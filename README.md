@@ -172,53 +172,33 @@ The platform also includes an administrative area for managing the overall learn
 
 
 
-\## 📸 Screenshots
+## 📸 Screenshots
 
+Here are some screenshots showcasing the platform's interface and main functionalities:
 
+### 🏠 Home Page
+![Home Page](<Screenshots/Home Page.png>)
 
-Here are some screenshots showcasing the platform's interface and main functionalities.
+### 📚 Courses Page
+![Courses Page](<Screenshots/Courses Page.png>)
 
+### 📖 Course Details
+![Course Details](<Screenshots/Course Details.png>)
 
+### 🎬 Learning Page
+![Learning Page](<Screenshots/Learning Page.png>)
 
-\### 🏠 Home Page
+### 👨‍🎓 Student Dashboard
+![Student Dashboard](<Screenshots/Student Dashboard.png>)
 
-!\[Home Page](Screenshots/home.png)
+### 👨‍🏫 Instructor Dashboard
+![Instructor Dashboard](<Screenshots/Instructor Dashboard.png>)
 
+### 🛡️ Admin Dashboard
+![Admin Dashboard](<Screenshots/Admin Dashboard.png>)
 
-
-\### 📚 Courses Page
-
-!\[Courses Page](Screenshots/courses.png)
-
-
-
-\### 📖 Course Details
-
-!\[Course Details](Screenshots/course-details.png)
-
-
-
-\### 👨‍🎓 Student Dashboard
-
-!\[Student Dashboard](Screenshots/student-dashboard.png)
-
-
-
-\### 👨‍🏫 Instructor Dashboard
-
-!\[Instructor Dashboard](Screenshots/instructor-dashboard.png)
-
-
-
-\### 🛡️ Admin Dashboard
-
-!\[Admin Dashboard](Screenshots/admin-dashboard.png)
-
-
-
-\### 💳 Payment Page
-
-!\[Payment Page](Screenshots/payment.png)
+### 💳 Payment Page
+![Payment Page](<Screenshots/Payment Page.png>)
 
 
 
