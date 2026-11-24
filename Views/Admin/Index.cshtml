@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "لوحة تحكم الأدمن";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="bi bi-speedometer2 me-2"></i> لوحة تحكم الإدارة</h2>
+        <span class="badge bg-danger fs-6">مشرف النظام (Admin)</span>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
+        <!-- بطاقة المستخدمين -->
+        <div class="col">
+            <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                <div class="card-body">
+                    <h6 class="card-title">إجمالي المستخدمين</h6>
+                    <h2 class="display-6 fw-bold">@ViewBag.UsersCount</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- بطاقة الدورات -->
+        <div class="col">
+            <div class="card border-0 shadow-sm bg-success text-white h-100">
+                <div class="card-body">
+                    <h6 class="card-title">إجمالي الدورات</h6>
+                    <h2 class="display-6 fw-bold">@ViewBag.CoursesCount</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- بطاقة التسجيلات -->
+        <div class="col">
+            <div class="card border-0 shadow-sm bg-warning text-dark h-100">
+                <div class="card-body">
+                    <h6 class="card-title">إجمالي التسجيلات</h6>
+                    <h2 class="display-6 fw-bold">@ViewBag.EnrollmentsCount</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- بطاقة التصنيفات -->
+        <div class="col">
+            <div class="card border-0 shadow-sm bg-info text-white h-100">
+                <div class="card-body">
+                    <h6 class="card-title">التصنيفات</h6>
+                    <h2 class="display-6 fw-bold">@ViewBag.CategoriesCount</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- روابط سريعة لإدارة النظام -->
+    <div class="card shadow-sm border-0 p-4">
+        <h4 class="mb-3 text-secondary">إدارة النظام السريعة</h4>
+        <div class="d-flex gap-3 flex-wrap">
+            <a asp-action="Courses" class="btn btn-outline-primary">إدارة دورات المنصة</a>
+            <a asp-action="Users" class="btn btn-outline-success">إدارة المستخدمين</a>
+            <a asp-action="Dashboard" class="btn btn-outline-warning text-dark">طلبات المدربين</a>
+            <a asp-action="Payments" class="btn btn-outline-dark">المدفوعات</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+@model OnlineCoursePlatform.ViewModels.InstructorRequestViewModel
+
+@{
+    ViewData["Title"] = "انضم كمدرب";
+}
+
+<section class="inner-page-hero"><div class="container"><span>انضم إلى مجتمع المدربين</span><h1>شارك خبرتك مع الآخرين</h1><p>قدّم طلبك وابدأ بإنشاء دوراتك بعد موافقة الإدارة.</p></div></section>
+<div class="container platform-page form-page" dir="rtl" style="max-width: 760px;">
+    <div class="card shadow-sm border-0 p-4 rounded-4">
+        <h3 class="text-center text-primary mb-3">قدم طلب الانضمام كمدرب</h3>
+        <p class="text-muted text-center mb-4">شارك خبرتك مع آلاف الطلاب وأنشئ دوراتك الخاصة على المنصة.</p>
+
+        <form asp-action="BecomeInstructor" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Bio" class="form-label fw-bold"></label>
+                <textarea asp-for="Bio" class="form-control" rows="5" placeholder="اكتب نبذة عن خبرتك، مهاراتك، ومجالات التدريس الخاصة بك..."></textarea>
+                <span asp-validation-for="Bio" class="text-danger"></span>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary py-2 fw-bold">إرسال الطلب للمراجعة</button>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary py-2">العودة للرئيسية</a>
+            </div>
+        </form>
+    </div>
+</div>

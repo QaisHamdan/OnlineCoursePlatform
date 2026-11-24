@@ -1,0 +1,58 @@
+﻿@model OnlineCoursePlatform.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+}
+
+<section class="inner-page-hero"><div class="container"><span>منصة التعلم</span><h1>تسجيل الدخول</h1><p>سجّل دخولك وتابع رحلتك التعليمية.</p></div></section>
+<div class="container platform-page auth-page">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4 p-4 auth-card">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">مرحباً بك مجدداً!</h2>
+                    <p class="text-muted">سجل دخولك للمتابعة في منصة الدورات التعليمية</p>
+                </div>
+
+                <form asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <label asp-for="Email">البريد الإلكتروني</label>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Password" />
+                        <label asp-for="Password">كلمة المرور</label>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <!-- رابط نسيت كلمة المرور مرتب بأناقة هنا -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" asp-for="RememberMe" />
+                            <label class="form-check-label" asp-for="RememberMe">
+                                @Html.DisplayNameFor(m => m.RememberMe)
+                            </label>
+                        </div>
+                        <a asp-action="ForgotPassword" class="text-decoration-none small text-primary fw-semibold">هل نسيت كلمة المرور؟</a>
+                    </div>
+
+                    <button type="submit" class="w-100 btn btn-lg btn-primary rounded-pill mb-3">تسجيل الدخول</button>
+
+                    <div class="text-center">
+                        <p class="text-muted">ليس لديك حساب؟ <a asp-action="Register" class="text-decoration-none fw-bold text-primary">انشئ حساباً جديداً</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

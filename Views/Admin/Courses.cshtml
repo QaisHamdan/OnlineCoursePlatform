@@ -1,0 +1,90 @@
+﻿@model IEnumerable<OnlineCoursePlatform.Models.Course>
+
+@{
+    ViewData["Title"] = "إدارة دورات المنصة";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="bi bi-journal-code me-2"></i> إدارة دورات المنصة</h2>
+        <span class="badge bg-secondary fs-6">إجمالي الدورات: @Model.Count()</span>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>عنوان الدورة</th>
+                            <th>المدرب</th>
+                            <th>التصنيف</th>
+                            <th>السعر</th>
+                            <th>الحالة</th>
+                            <th class="text-center">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var course in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@course.Title</td>
+                                    <td>@(course.Instructor?.Email ?? "غير متوفر")</td>
+                                    <td>
+                                        <span class="badge bg-dark">@(course.Category?.Name ?? "عام")</span>
+                                    </td>
+                                    <td>$@course.Price</td>
+                                    <td>
+                                        @if (course.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">معتمدة</span>
+                                        }
+                                        else if (course.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">مرفوضة</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">قيد المراجعة</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            @if (course.Status != "Approved")
+                                            {
+                                                <form asp-action="ApproveCourse" asp-route-id="@course.Id" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-success" title="موافقة">
+                                                        <i class="bi bi-check-lg"></i> موافقة
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if (course.Status != "Rejected")
+                                            {
+                                                <form asp-action="RejectCourse" asp-route-id="@course.Id" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="رفض">
+                                                        <i class="bi bi-x-lg"></i> رفض
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">لا توجد دورات مرفوعة حالياً.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

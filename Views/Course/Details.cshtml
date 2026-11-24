@@ -1,0 +1,683 @@
+@model OnlineCoursePlatform.Models.Course
+@{
+    ViewData["Title"] = "تفاصيل الدورة";
+    bool isEnrolled = ViewBag.IsEnrolled != null && (bool)ViewBag.IsEnrolled;
+    decimal progress = ViewBag.ProgressPercentage is decimal v ? v : 0m;
+    var lessons = Model.Lessons?.OrderBy(l => l.DisplayOrder).ToList() ?? new List<OnlineCoursePlatform.Models.Lesson>();
+    bool canPlay = isEnrolled || User.IsInRole("Admin") ||
+        (User.IsInRole("Instructor") && Model.InstructorId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+    var introduction = lessons.FirstOrDefault();
+
+    string GetEmbedUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return "";
+        if (url.StartsWith("www.youtube.com", StringComparison.OrdinalIgnoreCase) ||
+            url.StartsWith("youtu.be", StringComparison.OrdinalIgnoreCase))
+            url = "https://" + url;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return url;
+        string? videoId = null;
+        if (uri.Host.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
+            videoId = uri.AbsolutePath.Trim('/');
+        else if (uri.Host.Contains("youtube.com", StringComparison.OrdinalIgnoreCase))
+        {
+            if (uri.AbsolutePath.StartsWith("/embed/", StringComparison.OrdinalIgnoreCase))
+                videoId = uri.AbsolutePath.Substring("/embed/".Length);
+            else if (uri.AbsolutePath.StartsWith("/shorts/", StringComparison.OrdinalIgnoreCase))
+                videoId = uri.AbsolutePath.Substring("/shorts/".Length);
+            else
+                videoId = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("v", out var v) ? v.ToString() : null;
+        }
+        return !string.IsNullOrWhiteSpace(videoId)
+            ? $"https://www.youtube-nocookie.com/embed/{videoId}"
+            : url;
+    }
+}
+
+<section class="inner-page-hero">
+    <div class="container">
+        <span>مساحة التعلم</span>
+        <h1>@Model.Title</h1>
+        <p>تابع محتوى الدورة، شاهد الدروس، وشارك تجربتك مع المتعلمين.</p>
+    </div>
+</section>
+
+<div class="container-fluid course-workspace py-4" dir="rtl">
+    <div class="course-overview-card mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-@(string.IsNullOrWhiteSpace(Model.ThumbnailUrl) ? 12 : 8)">
+                <span class="course-category-pill">@(Model.Category?.Name ?? "عام")</span>
+                <h2>@Model.Title</h2>
+                <p>@Model.Description</p>
+                <div class="course-instructor d-flex align-items-center gap-3 my-3">
+                    <img src="@(string.IsNullOrWhiteSpace(Model.Instructor?.ProfilePictureUrl) ? "/images/teachers/teacher-1.jpg" : Model.Instructor.ProfilePictureUrl)" alt="صورة منشئ الدورة" class="course-instructor-avatar" />
+                    <div><small class="text-muted d-block">منشئ الدورة</small><strong>@(Model.Instructor == null ? "مدرب المنصة" : $"{Model.Instructor.FirstName} {Model.Instructor.LastName}")</strong>
+                    @if (!string.IsNullOrWhiteSpace(Model.Instructor?.Bio)) { <div class="small text-muted">@Model.Instructor.Bio</div> }</div>
+                </div>
+                <div class="course-overview-meta">
+                    <span><i class="bi bi-bar-chart"></i> @Model.Level</span>
+                    <span><i class="bi bi-play-circle"></i> @lessons.Count درس</span>
+                    <span><i class="bi bi-cash"></i> @(Model.Price == 0 ? "مجانية" : $"{Model.Price:0.00} $")</span>
+                </div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.ThumbnailUrl))
+            {
+                <div class="col-lg-4">
+                    <img class="course-overview-image" src="@Model.ThumbnailUrl" alt="@Model.Title" />
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+    @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+    @if (TempData["Message"] != null) { <div class="alert alert-info">@TempData["Message"]</div> }
+
+    @if (isEnrolled)
+    {
+        <div class="course-progress-card mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <strong>نسبة إنجازك في الدورة</strong>
+                <strong>@progress.ToString("0")%</strong>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width:@progress%" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small>يتم تحديث النسبة عند الضغط على «تم إكمال الدرس» بعد إنهاء الدرس.</small>
+        </div>
+    }
+
+    <div class="learning-columns">
+        <!-- عمود التقييمات -->
+        <aside class="learning-reviews">
+            <div class="workspace-panel">
+                <h4><i class="bi bi-chat-square-text"></i> تقييمات الطلاب <span class="review-count">@(Model.Reviews?.Count ?? 0)</span></h4>
+
+                @if (isEnrolled)
+                {
+                    <form asp-controller="Review" asp-action="AddReview" method="post" class="review-form">
+                        <input type="hidden" name="courseId" value="@Model.Id" />
+                        <label>تقييمك</label>
+                        <select name="rating" class="form-control mb-2">
+                            <option value="5">★★★★★ - ممتاز</option>
+                            <option value="4">★★★★ - جيد جداً</option>
+                            <option value="3">★★★ - جيد</option>
+                            <option value="2">★★ - مقبول</option>
+                            <option value="1">★ - ضعيف</option>
+                        </select>
+                        <textarea name="comment" class="form-control mb-2" rows="3" placeholder="اكتب تعليقك عن الدورة..."></textarea>
+                        <button class="btn btn-primary btn-block" type="submit">إرسال التقييم</button>
+                    </form>
+                }
+
+                @if (Model.Reviews?.Any() == true)
+                {
+                    foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
+                    {
+                        <article class="student-review">
+                            <div class="review-top">
+                                <strong>@(review.Student != null ? $"{review.Student.FirstName} {review.Student.LastName}" : "متعلم")</strong>
+                                <small>@review.CreatedAt.ToString("yyyy-MM-dd")</small>
+                            </div>
+                            <div class="review-stars">
+                                @for (int i = 0; i < review.Rating; i++)
+                                {
+                                    <i class="bi bi-star-fill"></i>
+                                }
+                            </div>
+                            <p>@review.Comment</p>
+                        </article>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted small">لا توجد تقييمات حتى الآن.</p>
+                }
+            </div>
+        </aside>
+
+        <!-- عمود مشغل الدروس -->
+        <section class="learning-player">
+            <div class="workspace-panel player-panel">
+                <div class="player-heading">
+                    <div>
+                        <span>محتوى الدورة</span>
+                        <h3>ابدأ التعلم</h3>
+                    </div>
+                    <span class="lesson-count">@lessons.Count درس</span>
+                </div>
+
+                @if (lessons.Any())
+                {
+                    var first = lessons.First();
+                    <div class="featured-lesson">
+                        <h4>@first.Title</h4>
+                        <p>@first.Description</p>
+                        @if (!string.IsNullOrWhiteSpace(first.VideoUrl))
+                        {
+                            if (first.VideoUrl.StartsWith("/uploads/videos/", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <video id="introVideo" controls playsinline preload="metadata">
+                                    <source src="@first.VideoUrl" type="video/@System.IO.Path.GetExtension(first.VideoUrl).TrimStart('.').ToLowerInvariant()" />
+                                    المتصفح لا يدعم تشغيل الفيديو.
+                                </video>
+                            }
+                            else
+                            {
+                                <div class="embed-video"><iframe id="introYoutube" src="@(GetEmbedUrl(first.VideoUrl) + (GetEmbedUrl(first.VideoUrl).Contains("?") ? "&" : "?") + "enablejsapi=1")" title="مقدمة الدورة" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+                            }
+                            <div class="alert alert-info mt-3 mb-0"><i class="bi bi-info-circle"></i> هذا فيديو المقدمة متاح للجميع. بعد انتهائه، اشترك لمشاهدة بقية الدروس.</div>
+                        }
+                        else
+                        {
+                            <div class="video-empty"><i class="bi bi-play-btn"></i><span>لم يتم رفع فيديو المقدمة بعد.</span></div>
+                        }
+                        @if (!canPlay)
+                        {
+                            <div class="video-locked text-center mt-3">
+                                <i class="bi bi-lock-fill"></i>
+                                <h5>باقي الدروس للمشتركين فقط</h5>
+                                <p>اشترك في الدورة لمتابعة جميع الدروس التعليمية.</p>
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    if (Model.Price == 0)
+                                    {
+                                        <form asp-controller="Enrollment" asp-action="Enroll" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="courseId" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-success">اشترك مجاناً وابدأ التعلم</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Payment" asp-action="Checkout" asp-route-courseId="@Model.Id" class="btn btn-success">اشترك الآن</a>
+                                    }
+                                }
+                                else
+                                {
+                                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-success">سجل الدخول واشترك</a>
+                                }
+                            </div>
+                        }
+                        <a asp-controller="Lesson" asp-action="Details" asp-route-id="@first.Id" class="btn btn-primary mt-3">فتح فيديو المقدمة</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="video-empty">
+                        <i class="bi bi-collection-play"></i>
+                        <span>لم تتم إضافة دروس لهذه الدورة بعد.</span>
+                    </div>
+                }
+
+                <div class="course-description-block">
+                    <h5>عن الدورة</h5>
+                    <p>@Model.Description</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- عمود المنهج الدراسي -->
+        <aside class="learning-curriculum">
+            <div class="workspace-panel">
+                <div class="curriculum-heading">
+                    <h4><i class="bi bi-list-task"></i> محتوى الدورة</h4>
+                    @if (User.IsInRole("Admin") || (User.IsInRole("Instructor") && Model.InstructorId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+                    {
+                        <a asp-controller="Lesson" asp-action="Create" asp-route-courseId="@Model.Id" class="btn btn-sm btn-outline-primary">إضافة درس</a>
+                    }
+                </div>
+
+                @if (lessons.Any())
+                {
+                    <div class="curriculum-list">
+                        @foreach (var lesson in lessons)
+                        {
+                            <div class="curriculum-item">
+                                <div class="lesson-number">@lesson.DisplayOrder</div>
+                                <div class="lesson-info">
+                                    <strong>@lesson.Title</strong>
+                                    <small>@(lesson.DurationInMinutes ?? 0) دقيقة @(lesson.Id == introduction.Id ? "· مقدمة مجانية" : "· للمشتركين")</small>
+                                </div>
+                                @if (lesson.Id == introduction.Id || canPlay)
+                                {
+                                    <a asp-controller="Lesson" asp-action="Details" asp-route-id="@lesson.Id" class="lesson-open" title="فتح الدرس"><i class="bi bi-play-fill"></i></a>
+                                }
+                                else
+                                {
+                                    <span class="lesson-open lesson-locked" title="يتطلب الاشتراك"><i class="bi bi-lock-fill"></i></span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small">لا توجد دروس مضافة.</p>
+                }
+
+                @if (!isEnrolled)
+                {
+                    <div class="enroll-box">
+                        <strong>@(Model.Price == 0 ? "هذه الدورة مجانية" : $"السعر: {Model.Price:0.00} $")</strong>
+                        @if (Model.Price == 0 && User.Identity?.IsAuthenticated == true)
+                        {
+                            <form asp-controller="Enrollment" asp-action="Enroll" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="courseId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-success btn-block mt-2">الالتحاق بالدورة مجاناً</button>
+                            </form>
+                        }
+                        else if (Model.Price > 0 && User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-controller="Payment" asp-action="Checkout" asp-route-courseId="@Model.Id" class="btn btn-success btn-block mt-2">اشترك الآن</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-success btn-block mt-2">سجل الدخول للالتحاق</a>
+                        }
+                    </div>
+                }
+            </div>
+        </aside>
+    </div>
+</div>
+
+@if (!canPlay && introduction != null)
+{
+    <div class="modal fade" id="introFinishedModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 rounded-4">
+            <div class="modal-body text-center p-4"><i class="bi bi-mortarboard-fill text-primary fs-1"></i><h4 class="mt-3">انتهت مقدمة الدورة</h4><p>حتى تكمل باقي الدروس، أشترك في الدورة أولاً.</p>
+                @if (Model.Price == 0) { <form asp-controller="Enrollment" asp-action="Enroll" method="post">@Html.AntiForgeryToken()<input type="hidden" name="courseId" value="@Model.Id" /><button type="submit" class="btn btn-success">اشترك مجاناً</button></form> }
+                else { <a asp-controller="Payment" asp-action="Checkout" asp-route-courseId="@Model.Id" class="btn btn-success">اشترك الآن</a> }
+            </div></div></div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const showNotice = () => { const el = document.getElementById('introFinishedModal'); if (el && window.jQuery && jQuery.fn.modal) jQuery(el).modal('show'); else if (el) window.alert('انتهت المقدمة. اشترك لمتابعة بقية الدروس.'); };
+        const video = document.getElementById('introVideo'); if (video) video.addEventListener('ended', showNotice);
+        const frame = document.getElementById('introYoutube');
+        if (frame) {
+          const tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag);
+          window.onYouTubeIframeAPIReady = () => { new YT.Player('introYoutube', { events: { onStateChange: e => { if (e.data === YT.PlayerState.ENDED) showNotice(); } } }); };
+        }
+      });
+    </script>
+}
+
+<style>
+    .course-workspace {
+        max-width: 1600px;
+    }
+
+    .course-overview-card, .course-progress-card, .workspace-panel {
+        background: #fff;
+        border: 1px solid #e5ebf2;
+        border-radius: 13px;
+        box-shadow: 0 7px 24px rgba(16,39,71,.05);
+        padding: 22px;
+    }
+
+        .course-overview-card h2 {
+            color: #102b4d;
+            font-weight: 900;
+            margin: 8px 0;
+        }
+
+        .course-overview-card p {
+            color: #69788c;
+            line-height: 1.8;
+        }
+
+    .course-category-pill {
+        background: #fff2d8;
+        color: #99630b;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .course-overview-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        color: #53647a;
+        font-size: 12px;
+    }
+
+        .course-overview-meta i {
+            color: #d89013;
+        }
+
+    .course-instructor-avatar { width:54px;height:54px;object-fit:cover;border-radius:50%;border:2px solid #e7edf5; }
+    .lesson-locked { opacity:.55; cursor:not-allowed; }
+    .course-overview-image {
+        width: 100%;
+        max-height: 190px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .course-progress-card {
+        padding: 16px 20px;
+    }
+
+        .course-progress-card strong {
+            color: #102b4d;
+        }
+
+        .course-progress-card .progress {
+            height: 10px;
+            background: #e8edf4;
+            border-radius: 20px;
+        }
+
+        .course-progress-card .progress-bar {
+            background: linear-gradient(90deg,#e99a16,#f7bf4c);
+        }
+
+        .course-progress-card small {
+            display: block;
+            color: #8390a0;
+            margin-top: 8px;
+        }
+
+    .learning-columns {
+        display: grid;
+        grid-template-columns: minmax(245px, .9fr) minmax(360px,1.5fr) minmax(270px,1fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .workspace-panel h4 {
+        font-size: 16px;
+        color: #102b4d;
+        font-weight: 900;
+        margin-bottom: 17px;
+    }
+
+        .workspace-panel h4 i {
+            color: #d99116;
+            margin-left: 6px;
+        }
+
+    .learning-reviews {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    .learning-player {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .learning-curriculum {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .review-form {
+        background: #f6f8fb;
+        padding: 14px;
+        border-radius: 9px;
+        margin-bottom: 18px;
+    }
+
+        .review-form label {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .review-form .form-control {
+            font-size: 12px;
+        }
+
+    .student-review {
+        border-bottom: 1px solid #edf0f4;
+        padding: 13px 0;
+    }
+
+        .student-review:last-child {
+            border: 0;
+        }
+
+    .review-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+        .review-top strong {
+            font-size: 12px;
+            color: #263b55;
+        }
+
+        .review-top small {
+            font-size: 10px;
+            color: #8a96a5;
+        }
+
+    .review-stars {
+        color: #eda51f;
+        font-size: 11px;
+        margin: 6px 0;
+    }
+
+    .student-review p {
+        font-size: 12px;
+        line-height: 1.8;
+        color: #59687a;
+        margin: 0;
+    }
+
+    .player-heading, .curriculum-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .player-heading span:first-child {
+            color: #d18a0d;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .player-heading h3 {
+            font-size: 19px;
+            font-weight: 900;
+            color: #102b4d;
+            margin: 3px 0 15px;
+        }
+
+    .lesson-count {
+        background: #edf3fa;
+        color: #345575;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 10px;
+    }
+
+    .featured-lesson h4 {
+        font-size: 16px;
+        color: #102b4d;
+    }
+
+    .featured-lesson p, .course-description-block p {
+        font-size: 12px;
+        color: #69788c;
+        line-height: 1.8;
+    }
+
+    .featured-lesson video, .embed-video {
+        width: 100%;
+        aspect-ratio: 16/9;
+        background: #07172b;
+        border-radius: 9px;
+        overflow: hidden;
+    }
+
+    .featured-lesson video {
+        object-fit: contain;
+    }
+
+    .embed-video iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
+    .video-locked {
+        min-height: 230px;
+        padding: 28px 18px;
+        background: #fff8e8;
+        border: 1px solid #f0d99f;
+        border-radius: 10px;
+        color: #725018;
+    }
+    .video-locked > i { font-size: 36px; color: #c58a18; }
+    .video-locked h5 { margin: 10px 0; font-weight: 800; color: #183451; }
+    .video-locked p { color: #75664b; font-size: 13px; }
+    .video-empty {
+        min-height: 230px;
+        background: #f1f4f8;
+        border: 1px dashed #ccd5e1;
+        border-radius: 9px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #8794a5;
+        font-size: 12px;
+    }
+
+        .video-empty i {
+            font-size: 38px;
+            color: #d69a2c;
+        }
+
+    .course-description-block {
+        border-top: 1px solid #edf0f4;
+        margin-top: 20px;
+        padding-top: 17px;
+    }
+
+        .course-description-block h5 {
+            font-size: 14px;
+            color: #102b4d;
+            font-weight: 900;
+        }
+
+    .curriculum-heading {
+        margin-bottom: 15px;
+    }
+
+        .curriculum-heading h4 {
+            margin: 0;
+        }
+
+    .curriculum-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .curriculum-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 0;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .lesson-number {
+        width: 29px;
+        height: 29px;
+        flex: 0 0 29px;
+        border-radius: 8px;
+        background: #fff2d8;
+        color: #a66b0b;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 900;
+    }
+
+    .lesson-info {
+        min-width: 0;
+        flex: 1;
+    }
+
+        .lesson-info strong {
+            display: block;
+            font-size: 11px;
+            color: #30445d;
+            line-height: 1.6;
+        }
+
+        .lesson-info small {
+            display: block;
+            font-size: 9px;
+            color: #8a96a5;
+            margin-top: 3px;
+        }
+
+    .lesson-open {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: #eaf2fb;
+        color: #244c77;
+    }
+
+    .enroll-box {
+        margin-top: 18px;
+        padding: 14px;
+        background: #fff8e9;
+        border-radius: 9px;
+        color: #98630d;
+        font-size: 13px;
+    }
+
+        .enroll-box .btn {
+            font-size: 12px;
+        }
+
+    @@media (max-width: 1100px) {
+        .learning-columns {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .learning-player {
+            grid-column: 1/3;
+            grid-row: 1;
+        }
+
+        .learning-reviews {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .learning-curriculum {
+            grid-column: 1;
+            grid-row: 2;
+        }
+    }
+
+    @@media (max-width: 700px) {
+        .learning-columns {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .learning-columns > aside, .learning-player {
+                width: 100%;
+            }
+
+        .course-overview-card {
+            padding: 17px;
+        }
+    }
+</style>

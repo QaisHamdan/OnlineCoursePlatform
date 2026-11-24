@@ -1,0 +1,71 @@
+﻿@model IEnumerable<OnlineCoursePlatform.Models.Course>
+@{
+    ViewData["Title"] = "الرئيسية";
+    var courses = Model ?? Enumerable.Empty<OnlineCoursePlatform.Models.Course>();
+    var categoryTiles = new[] {
+        new { Icon = "ti-code", Name = "البرمجة وتطوير الويب" },
+        new { Icon = "ti-bar-chart", Name = "تحليل البيانات" },
+        new { Icon = "ti-palette", Name = "التصميم الجرافيكي" },
+        new { Icon = "ti-briefcase", Name = "الأعمال والإدارة" },
+        new { Icon = "ti-world", Name = "اللغات" },
+        new { Icon = "ti-mobile", Name = "تطبيقات الهاتف" },
+        new { Icon = "ti-settings", Name = "العلوم والتقنية" },
+        new { Icon = "ti-heart", Name = "المهارات الشخصية" }
+    };
+}
+<section class="hero-section">
+    <div class="container hero-content">
+        <div class="hero-copy">
+            <span class="eyebrow"><i class="ti-star"></i> ابدأ رحلتك التعليمية اليوم</span>
+            <h1>تعلّم <em>في أي وقت</em><br />ومن أي مكان</h1>
+            <p>اكتشف دورات عملية تساعدك على تطوير مهاراتك، واكتسب المعرفة التي تحتاجها لتخطو بثقة نحو أهدافك.</p>
+            <div class="hero-actions">
+                <a asp-controller="Course" asp-action="Index" class="btn-primary-custom">استكشف الدورات <i class="ti-angle-left"></i></a>
+                <a asp-controller="Account" asp-action="Register" class="btn-ghost-custom">أنشئ حساباً مجانياً</a>
+            </div>
+            <div class="hero-proof"><span><i class="ti-check"></i> تعلّم حسب وقتك</span><span><i class="ti-check"></i> محتوى متنوع</span><span><i class="ti-check"></i> طوّر مهاراتك</span></div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+            <div class="hero-glow"></div>
+            <div class="learning-card"><div class="screen-top"><span></span><span></span><span></span></div><div class="screen-content"><div class="play-circle"><i class="ti-control-play"></i></div><strong>ONLINE LEARNING</strong><small>طريقك نحو معرفة جديدة</small><div class="screen-progress"><span></span></div></div></div>
+            <div class="floating-badge badge-one"><i class="ti-book"></i><span>تعلم مستمر</span></div>
+            <div class="floating-badge badge-two"><i class="ti-medall"></i><span>طوّر مستقبلك</span></div>
+            <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+        </div>
+    </div>
+</section>
+<section class="trust-strip"><div class="container trust-items"><div><i class="ti-video-clapper"></i><span>تعلم عبر الإنترنت</span></div><div><i class="ti-infinite"></i><span>تعلم بالسرعة المناسبة لك</span></div><div><i class="ti-bookmark-alt"></i><span>مجالات متنوعة</span></div><div><i class="ti-headphone-alt"></i><span>تجربة سهلة وواضحة</span></div></div></section>
+<section class="section-block categories-section">
+    <div class="container">
+        <div class="section-heading"><div><span class="section-kicker">اختر مجال اهتمامك</span><h2>استكشف <b>التصنيفات</b></h2><p>ابدأ من المجال الذي ترغب في تطوير مهاراتك فيه.</p></div><a asp-controller="Course" asp-action="Index" class="text-link">جميع الدورات <i class="ti-arrow-left"></i></a></div>
+        <div class="category-grid">
+            @foreach (var category in categoryTiles) { <a asp-controller="Course" asp-action="Index" class="category-tile"><span class="category-icon"><i class="@category.Icon"></i></span><strong>@category.Name</strong><i class="ti-angle-left category-arrow"></i></a> }
+        </div>
+    </div>
+</section>
+<section class="section-block courses-section">
+    <div class="container">
+        <div class="section-heading"><div><span class="section-kicker">محتوى يساعدك على التقدم</span><h2>أحدث <b>الدورات</b></h2><p>تعرّف على أحدث الدورات المنشورة على المنصة.</p></div><a asp-controller="Course" asp-action="Index" class="text-link">عرض كل الدورات <i class="ti-arrow-left"></i></a></div>
+        <div class="row course-grid">
+        @if (courses.Any())
+        {
+            foreach (var course in courses)
+            {
+                var imageUrl = string.IsNullOrWhiteSpace(course.ThumbnailUrl) ? Url.Content("~/images/courses/course-1.jpg") : (course.ThumbnailUrl.StartsWith("~") ? Url.Content(course.ThumbnailUrl) : (course.ThumbnailUrl.StartsWith("/") ? course.ThumbnailUrl : Url.Content("~/" + course.ThumbnailUrl.TrimStart('/')) ));
+                <div class="col-lg-4 col-md-6 mb-4"><article class="course-card h-100">
+                    <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" class="course-image-wrap"><img src="@imageUrl" alt="@course.Title" onerror="this.onerror=null;this.src='/images/courses/course-1.jpg';" /><span class="course-level">@course.Level</span></a>
+                    <div class="course-card-body"><div class="course-meta"><span><i class="ti-calendar"></i> @course.CreatedAt.ToString("yyyy/MM/dd")</span><span><i class="ti-bookmark"></i> @(course.Category?.Name ?? "دورة تدريبية")</span></div>
+                    <h3><a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id">@course.Title</a></h3>
+                    <p>@(string.IsNullOrWhiteSpace(course.Description) ? "اكتشف محتوى هذه الدورة وتعرّف على المهارات التي ستتعلمها." : (course.Description.Length > 115 ? course.Description.Substring(0, 115) + "..." : course.Description))</p>
+                    <div class="course-card-footer"><strong>@(course.Price == 0 ? "مجانية" : course.Price.ToString("0.00") + " $")</strong><a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id">عرض التفاصيل <i class="ti-arrow-left"></i></a></div></div>
+                </article></div>
+            }
+        }
+        else
+        {
+            <div class="col-12"><div class="empty-courses"><span class="ti-book-open"></span><h3>لا توجد دورات منشورة حالياً</h3><p>يمكنك تصفح صفحة الدورات للاطلاع على المحتوى المتاح لاحقاً.</p><a asp-controller="Course" asp-action="Index" class="btn-primary-custom">تصفح الدورات</a></div></div>
+        }
+        </div>
+    </div>
+</section>
+<section class="join-section"><div class="container join-inner"><div><span class="section-kicker">خطوتك التالية تبدأ الآن</span><h2>جاهز تبدأ رحلة التعلم؟</h2><p>أنشئ حسابك واكتشف الدورات التي تناسب أهدافك.</p></div><a asp-controller="Account" asp-action="Register" class="btn-primary-custom">ابدأ الآن <i class="ti-arrow-left"></i></a></div></section>

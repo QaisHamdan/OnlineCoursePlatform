@@ -1,0 +1,46 @@
+@model OnlineCoursePlatform.Models.Course
+
+@{
+    ViewData["Title"] = "حذف الدورة";
+}
+
+<section class="inner-page-hero"><div class="container"><span>إدارة الدورات</span><h1>حذف الدورة</h1><p>راجع تفاصيل الدورة قبل تأكيد الحذف النهائي.</p></div></section>
+<div class="container platform-page" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card platform-form-card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">تأكيد حذف الدورة التدريبية</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-danger mb-4">هل أنت متأكد تماماً من رغبتك في حذف هذه الدورة؟ لا يمكن التراجع عن هذا الإجراء.</h5>
+
+                    <!-- مكان عرض رسالة الخطأ عند وجود ارتباطات تمنع الحذف -->
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
+
+                    <dl class="row mb-4">
+                        <dt class="col-sm-3 text-muted">عنوان الدورة:</dt>
+                        <dd class="col-sm-9 fw-bold">@Model.Title</dd>
+
+                        <dt class="col-sm-3 text-muted">وصف الدورة:</dt>
+                        <dd class="col-sm-9">@Model.Description</dd>
+
+                        <dt class="col-sm-3 text-muted">السعر:</dt>
+                        <dd class="col-sm-9 text-success fw-bold">$@Model.Price</dd>
+
+                        <dt class="col-sm-3 text-muted">المستوى:</dt>
+                        <dd class="col-sm-9">@Model.Level</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-danger">تأكيد الحذف النهائي</button>
+                            <a asp-controller="@(User.IsInRole("Instructor") && !User.IsInRole("Admin") ? "Instructor" : "Course")" asp-action="@(User.IsInRole("Instructor") && !User.IsInRole("Admin") ? "Dashboard" : "Index")" class="btn btn-secondary">إلغاء والعودة</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

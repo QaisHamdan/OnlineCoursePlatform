@@ -1,0 +1,127 @@
+@model OnlineCoursePlatform.Models.Course
+
+@{
+    ViewData["Title"] = "إدارة محتوى الدورة والدروس";
+}
+
+<section class="inner-page-hero"><div class="container"><span>مساحة المدرب</span><h1>إدارة محتوى الدورة</h1><p>أضف فيديو المقدمة أولاً، ثم رتّب بقية الدروس للطلاب المشتركين.</p></div></section>
+<div class="container platform-page" dir="rtl">
+    <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="text-primary mb-1">دورة: @Model.Title</h3>
+                <p class="text-muted mb-0">
+                    الحالة الحالية:
+                    @if (Model.Status == "Draft")
+                    {
+                        <span class="badge bg-warning text-dark">مسودة (Draft)</span>
+                    }
+                    else if (Model.Status == "Pending")
+                    {
+
+                        <span class="badge bg-info text-dark">قيد المراجعة</span>
+                    }
+                    else if (Model.Status == "Approved")
+                    {
+
+                        <span class="badge bg-success">معتمدة ومباشرة</span>
+                    }
+                </p>
+            </div>
+            <a asp-action="Dashboard" class="btn btn-outline-secondary">العودة لدوراتي</a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+    @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+    <div class="row">
+        <!-- نموذج إضافة درس جديد -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <h4 class="text-secondary mb-3">إضافة درس / محتوى جديد</h4><div class="alert alert-info small">أول درس تضيفه لهذه الدورة سيُعتبر فيديو المقدمة المجاني والمتاح للجميع. أضف المقدمة أولاً.</div>
+                <form asp-action="AddLesson" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="courseId" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">عنوان الدرس</label>
+                        <input type="text" name="title" class="form-control" required placeholder="مثال: مقدمة في المتغيرات" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">رفع فيديو من جهازك (بدون YouTube)</label>
+                        <input type="file" name="videoFile" class="form-control" accept=".mp4,.webm,.ogg" />
+                        <small class="text-muted">MP4 / WEBM / OGG - حتى 500MB</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">أو رابط فيديو خارجي (اختياري)</label>
+                        <input type="url" name="videoUrl" class="form-control" placeholder="https://..." />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">المدة (بالدقائق)</label>
+                        <input type="number" name="durationInMinutes" class="form-control" value="10" min="1" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">وصف / ملاحظات الدرس</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="شرح مختصر لمحتوى الدرس..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">+ إضافة الدرس</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- قائمة الدروس المضافة والإرسال للمراجعة -->
+        <div class="col-md-7 mb-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <h4 class="text-secondary mb-3">دروس الدورة الحاليّة (@Model.Lessons.Count)</h4>
+
+                @if (!Model.Lessons.Any())
+                {
+                    <div class="alert alert-light text-center">لم تقم بإضافة أي دروس لهذه الدورة بعد. استخدم النموذج المجاور لإضافة الدروس.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush mb-4">
+                        @foreach (var lesson in Model.Lessons)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">@lesson.Title</h6>
+                                    <small class="text-muted">المدة: @lesson.DurationInMinutes دقيقة</small>
+                                </div>
+                                @if (!string.IsNullOrEmpty(lesson.VideoUrl))
+                                {
+                                    <a href="@lesson.VideoUrl" target="_blank" class="btn btn-sm btn-outline-info">معاينة الفيديو</a>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+
+                <hr />
+
+                <!-- زر الإرسال للمراجعة -->
+                @if (Model.Status == "Draft")
+                {
+                    <form asp-action="SubmitForApproval" method="post" class="mt-2">
+                        <input type="hidden" name="courseId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-success btn-lg w-100" @(Model.Lessons.Any() ? "" : "disabled")>
+                            إرسال الدورة للمراجعة والموافقة (الأدمن)
+                        </button>
+                        @if (!Model.Lessons.Any())
+                        {
+                            <small class="text-danger d-block text-center mt-1">يجب إضافة درس واحد على الأقل لإرسال الدورة للمراجعة.</small>
+                        }
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-info text-center mb-0">تم إرسال الدورة للمراجعة، لا يمكنك التعديل عليها حتى مراجعتها من الأدمن.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

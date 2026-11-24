@@ -1,0 +1,68 @@
+﻿@model IEnumerable<OnlineCoursePlatform.Models.Course>
+
+@{
+    ViewData["Title"] = "لوحة تحكم المدرب";
+}
+
+<section class="inner-page-hero"><div class="container"><span>مساحة المدرب</span><h1>إدارة دوراتي التدريبية</h1><p>تابع محتوى دوراتك وحالتها، وأدر الدروس والتفاصيل من مكان واحد.</p></div></section>
+<div class="container platform-page" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">إدارة دوراتي</h2>
+        <a asp-controller="Course" asp-action="Create" class="btn btn-success">
+            <i class="ti-plus"></i> إضافة دورة جديدة
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">لم تقم بإضافة أي دورات حتى الآن. ابدأ بإضافة دورتك الأولى!</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var course in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 course-management-card">
+                        <img src="@(string.IsNullOrWhiteSpace(course.ThumbnailUrl) ? "/images/courses/course-1.jpg" : course.ThumbnailUrl)" class="course-management-image" alt="@course.Title" onerror="this.onerror=null;this.src='/images/courses/course-1.jpg';" />
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary">@course.Category?.Name</span>
+                                @if (course.Status == "Draft")
+                                {
+                                    <span class="badge bg-warning text-dark">مسودة (Draft)</span>
+                                }
+                                else if (course.Status == "Pending")
+                                {
+                                    <span class="badge bg-info text-dark">قيد المراجعة</span>
+                                }
+                                else if (course.Status == "Approved")
+                                {
+                                    <span class="badge bg-success">معتمدة</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">مرفوضة</span>
+                                }
+                            </div>
+                            <h5 class="card-title fw-bold">@course.Title</h5>
+                            <p class="card-text text-muted small">@((course.Description ?? "").Length > 80 ? course.Description.Substring(0, 80) + "..." : course.Description)</p>
+                            <p class="text-primary fw-bold">السعر: $@course.Price</p>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-3">
+                            <div class="d-grid gap-2">
+                                <a asp-action="ManageLessons" asp-route-courseId="@course.Id" class="btn btn-outline-primary btn-sm">إدارة الدروس والمحتوى</a>
+                                <div class="d-flex gap-2"><a asp-controller="Course" asp-action="Edit" asp-route-id="@course.Id" class="btn btn-outline-warning btn-sm flex-fill">تعديل الدورة</a><a asp-controller="Course" asp-action="Delete" asp-route-id="@course.Id" class="btn btn-outline-danger btn-sm flex-fill">حذف الدورة</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

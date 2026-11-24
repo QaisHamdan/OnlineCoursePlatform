@@ -1,0 +1,124 @@
+@model OnlineCoursePlatform.Models.Course
+
+@{
+    ViewData["Title"] = "تعديل الدورة";
+}
+
+<section class="inner-page-hero"><div class="container"><span>إدارة الدورات</span><h1>تعديل الدورة</h1><p>حدّث معلومات الدورة مع الحفاظ على محتواها الحالي.</p></div></section>
+<div class="container platform-page" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card platform-form-card shadow border-0">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0 fw-bold">تعديل بيانات الدورة التدريبية</h4>
+                </div>
+                <div class="card-body">
+                    <!-- مهم جداً إضافة enctype لدعم رفع الملفات -->
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="InstructorId" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <input type="hidden" asp-for="ThumbnailUrl" /> <!-- الاحتفاظ بمسار الصورة القديمة -->
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold">عنوان الدورة</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">وصف الدورة</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label fw-bold">السعر ($)</label>
+                                <div class="d-flex gap-3 mb-2">
+                                    <label class="form-check border rounded-3 px-3 py-2">
+                                        <input class="form-check-input" type="radio" name="isFreeCourse" id="editCourseFree" value="true" checked="@(Model.Price == 0)" />
+                                        <span class="form-check-label">مجاني</span>
+                                    </label>
+                                    <label class="form-check border rounded-3 px-3 py-2">
+                                        <input class="form-check-input" type="radio" name="isFreeCourse" id="editCoursePaid" value="false" checked="@(Model.Price > 0)" />
+                                        <span class="form-check-label">مدفوع</span>
+                                    </label>
+                                </div>
+                                <input asp-for="Price" id="editCoursePrice" class="form-control" type="number" min="0" step="0.01" readonly="@(Model.Price == 0)" />
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Level" class="form-label fw-bold">المستوى</label>
+                                <select asp-for="Level" class="form-select form-control">
+                                    <option value="Beginner">مبتدئ</option>
+                                    <option value="Intermediate">متوسط</option>
+                                    <option value="Advanced">متقدم</option>
+                                </select>
+                                <span asp-validation-for="Level" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CategoryId" class="form-label fw-bold">التصنيف</label>
+                            <select asp-for="CategoryId" class="form-select form-control" asp-items="ViewBag.CategoryId"></select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Status" class="form-label fw-bold">حالة الدورة</label>
+                            <select asp-for="Status" class="form-select form-control">
+                                <option value="Draft">مسودة (Draft)</option>
+                                <option value="Published">منشورة (Published)</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+
+                        <!-- قسم عرض الصورة الحالية وتحديثها -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">صورة الغلاف الحالية:</label>
+                            <div class="mb-2">
+                                @{
+                                    var currentImg = string.IsNullOrEmpty(Model.ThumbnailUrl) ? null : (Model.ThumbnailUrl.StartsWith("~") ? Url.Content(Model.ThumbnailUrl) : (Model.ThumbnailUrl.StartsWith("/") ? Model.ThumbnailUrl : "/" + Model.ThumbnailUrl));
+                                }
+                                @if (!string.IsNullOrWhiteSpace(currentImg))
+                                {
+                                    <img src="@currentImg" alt="Course Thumbnail" class="img-thumbnail rounded shadow-sm" style="width: 140px; height: 90px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="text-muted small">لم يتم إضافة صورة غلاف لهذه الدورة.</div>
+                                }
+                            </div>
+                            <label for="coverImage" class="form-label fw-bold mt-2">تحديث صورة الغلاف (اختياري)</label>
+                            <input type="file" name="coverImage" id="coverImage" class="form-control" accept="image/*" />
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning fw-bold py-2">حفظ التعديلات</button>
+                            <a asp-controller="@(User.IsInRole("Instructor") && !User.IsInRole("Admin") ? "Instructor" : "Course")" asp-action="@(User.IsInRole("Instructor") && !User.IsInRole("Admin") ? "Dashboard" : "Index")" class="btn btn-secondary py-2">العودة</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        (() => {
+            const free = document.getElementById('editCourseFree');
+            const paid = document.getElementById('editCoursePaid');
+            const price = document.getElementById('editCoursePrice');
+            const sync = () => {
+                price.readOnly = free.checked;
+                if (free.checked) price.value = '0';
+                else if (Number(price.value) <= 0) price.value = '';
+            };
+            free.addEventListener('change', sync);
+            paid.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
+}

@@ -1,0 +1,55 @@
+﻿@model IEnumerable<OnlineCoursePlatform.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "إدارة حسابات الأدمن والصلاحيات";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="bi bi-shield-lock me-2"></i> إدارة حسابات الأدمن والصلاحيات</h2>
+        <span class="badge bg-dark fs-6">إجمالي المشرفين: @Model.Count()</span>
+    </div>
+
+    @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+    <div class="card shadow-sm border-0 mb-4"><div class="card-body"><h5 class="fw-bold mb-3">إضافة حساب أدمن جديد</h5><form asp-action="CreateAdmin" method="post" class="row g-3">@Html.AntiForgeryToken()
+      <div class="col-md-3"><label class="form-label">البريد الإلكتروني</label><input name="email" type="email" class="form-control" required /></div><div class="col-md-2"><label class="form-label">الاسم الأول</label><input name="firstName" class="form-control" required /></div><div class="col-md-2"><label class="form-label">اسم العائلة</label><input name="lastName" class="form-control" /></div><div class="col-md-3"><label class="form-label">كلمة المرور</label><input name="password" type="password" minlength="6" class="form-control" required /></div><div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-person-plus"></i> إضافة أدمن</button></div></form></div></div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>اسم المستخدم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>رقم الهاتف</th>
+                            <th>حالة الحساب</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var admin in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@admin.UserName</td>
+                                    <td>@admin.Email</td>
+                                    <td>@(admin.PhoneNumber ?? "غير متوفر")</td>
+                                    <td>
+                                        <span class="badge bg-primary">مدير معتمد (Admin)</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">لا يوجد مشرفون مسجلون.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

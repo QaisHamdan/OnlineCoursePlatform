@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - منصة التعلم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lykmapipo/themify-icons@0.1.2/css/themify-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/OnlineCoursePlatform.styles.css" asp-append-version="true" />
+    <link rel="icon" href="~/images/favicon.png" type="image/png">
+</head>
+<body>
+<header class="site-header">
+    <div class="top-strip">
+        <div class="container d-flex justify-content-between align-items-center flex-wrap">
+            <div class="top-links"><a href="mailto:support@example.com"><i class="ti-email"></i> تواصل معنا</a><span class="top-divider">|</span><a asp-controller="Home" asp-action="Privacy"><i class="ti-help-alt"></i> المساعدة</a></div>
+            <div class="top-links">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="welcome-user">@((User.Identity?.Name ?? "").Split('@')[0])</span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="top-action"><i class="ti-shift-left"></i> تسجيل الخروج</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="top-action"><i class="ti-user"></i> تسجيل الدخول</a>
+                    <a asp-controller="Account" asp-action="Register" class="top-action"><i class="ti-user"></i> إنشاء حساب</a>
+                }
+            </div>
+        </div>
+    </div>
+    <nav class="main-nav navbar navbar-expand-lg">
+        <div class="container nav-container">
+            <a class="navbar-brand brand" asp-controller="Home" asp-action="Index">
+                <img src="~/images/learning-platform-logo.svg" alt="شعار منصة التعلم" />
+                <span><strong>منصة التعلم</strong><small>تعلم، طوّر مهاراتك، وحقق أهدافك</small></span>
+            </a>
+            <button class="navbar-toggler nav-toggle" type="button" data-toggle="collapse" data-target="#mainNavigation" aria-controls="mainNavigation" aria-expanded="false" aria-label="فتح القائمة"><span class="ti-menu"></span></button>
+            <div class="collapse navbar-collapse" id="mainNavigation">
+                <ul class="navbar-nav mr-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">الرئيسية</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Course" asp-action="Index">استكشف الدورات</a></li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-controller="Enrollment" asp-action="MyCourses">دوراتي</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Profile">حسابي</a></li>
+                        @if (User.IsInRole("Instructor")) { <li class="nav-item"><a class="nav-link" asp-controller="Instructor" asp-action="Dashboard">لوحة المدرب</a></li> }
+                        @if (User.IsInRole("Admin")) { <li class="nav-item"><a class="nav-link admin-nav-link" asp-controller="Admin" asp-action="Dashboard">لوحة الإدارة</a></li> }
+                    }
+                </ul>
+                <form class="nav-search" asp-controller="Course" asp-action="Index" method="get">
+                    <input type="search" name="searchString" placeholder="ابحث عن دورة..." aria-label="ابحث عن دورة" />
+                    <button type="submit" aria-label="بحث"><i class="ti-search"></i></button>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>
+<main class="page-content">
+    @RenderBody()
+</main>
+<footer class="site-footer">
+    <div class="container footer-inner">
+        <a class="footer-brand" asp-controller="Home" asp-action="Index"><img src="~/images/learning-platform-logo.svg" alt="" /> منصة التعلم</a>
+        <p>مساحتك لاكتساب المعرفة وتطوير مهاراتك.</p>
+        <div class="footer-bottom">&copy; @DateTime.Now.Year منصة التعلم. جميع الحقوق محفوظة.</div>
+    </div>
+</footer>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/script.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

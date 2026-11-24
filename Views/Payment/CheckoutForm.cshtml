@@ -1,0 +1,48 @@
+@model OnlineCoursePlatform.Models.PaymentViewModel
+
+@{
+    ViewData["Title"] = "إتمام الدفع الآمن";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-dark text-white p-4 rounded-top-4">
+                    <h4 class="mb-1"><i class="bi bi-shield-lock-fill text-success me-2"></i> بوابة الدفع الآمن عبر PayPal</h4>
+                    <p class="mb-0 text-muted small">سيتم تحويلك بأمان لإتمام الدفع عبر منصة PayPal الرسمية</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <span class="d-block text-muted small">الدورة المطلوبة:</span>
+                            <strong>@Model.CourseTitle</strong>
+                        </div>
+                        <div class="text-end">
+                            <span class="d-block text-muted small">المبلغ الإجمالي:</span>
+                            <span class="text-success fw-bold fs-5">@Model.Amount.ToString("0.00") $</span>
+                        </div>
+                    </div>
+
+                    <!-- تم تعديل الـ action ليطابق الدالة الجديدة في الـ Controller -->
+                    <form asp-action="ProcessPayPalPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="courseId" value="@Model.CourseId" />
+
+                        <div class="text-center mb-4">
+                            <p class="text-muted">اضغط على الزر أدناه للانتقال إلى بوابة باي بال وإتمام عملية الشراء بكل سهولة.</p>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <!-- زر الدفع عبر PayPal -->
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm py-3" style="background-color: #0070ba; border-color: #0070ba;">
+                                <i class="bi bi-paypal me-2"></i> متابعة الدفع بـ PayPal (@Model.Amount.ToString("0.00") $)
+                            </button>
+                            <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CourseId" class="btn btn-outline-secondary">إلغاء والعودة</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,59 @@
+﻿@model IEnumerable<OnlineCoursePlatform.Models.Enrollment>
+
+@{
+    ViewData["Title"] = "دوراتي المسجلة";
+}
+
+<section class="inner-page-hero"><div class="container"><span>رحلتك التعليمية</span><h1>دوراتي المسجلة</h1><p>واصل التعلم وتابع تقدمك في الدورات التي التحقت بها.</p></div></section>
+<div class="container platform-page">
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 enrolled-course-card">
+                        <img src="@(string.IsNullOrWhiteSpace(item.Course?.ThumbnailUrl) ? "/images/courses/course-1.jpg" : item.Course.ThumbnailUrl)" class="enrolled-course-image" alt="@item.Course?.Title" onerror="this.onerror=null;this.src='/images/courses/course-1.jpg';" />
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary">@(item.Course.Category?.Name ?? "عام")</span>
+                                <span class="badge bg-success">@item.Status</span>
+                            </div>
+                            <h4 class="card-title fw-bold">@item.Course.Title</h4>
+                            <p class="card-text text-muted small flex-grow-1">
+                                @(item.Course.Description.Length > 100 ? item.Course.Description.Substring(0, 100) + "..." : item.Course.Description)
+                            </p>
+
+                            <!-- شريط التقدم (Progress Bar) -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>نسبة الإنجاز</span>
+                                    <span>@item.ProgressPercentage%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: @item.ProgressPercentage%;" aria-valuenow="@item.ProgressPercentage" aria-valuemin="0" aria-valuemas="100"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <a asp-controller="Course" asp-action="Details" asp-route-id="@item.CourseId" class="btn btn-outline-primary btn-sm">متابعة الدورة والدروس</a>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted small bg-light">
+                            تاريخ التسجيل: @item.EnrolledAt.ToString("yyyy-MM-dd")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center py-5">
+            <h4 class="alert-heading">لا توجد دورات مسجلة حالياً!</h4>
+            <p class="text-muted">لم تقم بالتسجيل في أي دورة بعد. استعرض الدورات المتاحة وابدأ رحلة التعلم الآن.</p>
+            <a asp-controller="Course" asp-action="Index" class="btn btn-primary mt-3">تصفح الدورات</a>
+        </div>
+    }
+</div>
